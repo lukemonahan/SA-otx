@@ -13,3 +13,13 @@ Requirements:
 * Splunk for Enterprise Security
 
 This app itself should require no setup if Splunk ES is already working, and OTX data is available.
+
+Supported indicator types from OTX are:
+
+* domain
+* hostname
+* email
+* FileHash-*
+* URL
+* IPv4
+* IPv6
