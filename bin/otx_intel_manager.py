@@ -1,5 +1,6 @@
 import sys
 import time
+import json
 from collections import defaultdict
 
 from modular_input import ModularInput, DurationField, IntegerField, Field
@@ -31,6 +32,7 @@ class OTXIntelManagerModularInput(ModularInput):
 		backfill_days = cleaned_params["backfill_days"]
 		index = cleaned_params.get("otx_index", "otx")
 		source = stanza
+		BATCH_SIZE = 50
 
         	run_time = time.time()
 
@@ -133,12 +135,16 @@ class OTXIntelManagerModularInput(ModularInput):
 			for indicator in indicator_reader:
 				if indicator['type'] in type_mappings:
 					for mapping in type_mappings[indicator['type']]:
-						indicator_batches[mapping['intel_collection']].append('{ "time": "%s", "%s": "%s", "threat_key": "otx:%s" }' % (indicator['_time'], mapping['intel_field'], indicator['indicator'], indicator['pulse_id']))
+						indicator_batches[mapping['intel_collection']].append({
+							"time": indicator['_time'],
+							mapping['intel_field']: indicator['indicator'],
+							"threat_key": "otx:%s" % indicator['pulse_id']
+						})
 
 			for threat_collection in indicator_batches:
 				threat_items = indicator_batches[threat_collection]
-				for small_batch in ([threat_items[i:i+20] for i in range(0, len(threat_items), 20)]):
-					service.post('/services/data/threat_intel/item/%s' % (threat_collection), body='item=[%s]' % (','.join(small_batch)))
+				for small_batch in ([threat_items[i:i+BATCH_SIZE] for i in range(0, len(threat_items), BATCH_SIZE)]):
+					service.post('/services/data/threat_intel/item/%s' % (threat_collection), body='item=%s' % (json.dumps(small_batch)))
 
 			pulse_query = 'search index=%s earliest=%s latest=%d sourcetype=otx:pulse | eval threat_category=mvjoin($tags{}$, "|") | fillnull value="" adversary description threat_category | fields _time adversary id name description threat_category' % (index, et, run_time)
 			pulse_results = service.jobs.oneshot(pulse_query, count=0)
@@ -160,7 +166,7 @@ class OTXIntelManagerModularInput(ModularInput):
 					"threat_category" : pulse['threat_category'].split("|")
 				}
 				threat_group_items.append(threat_group_item)
-			for small_batch in ([threat_group_items[i:i+20] for i in range(0, len(threat_group_items), 20)]):
+			for small_batch in ([threat_group_items[i:i+BATCH_SIZE] for i in range(0, len(threat_group_items), BATCH_SIZE)]):
 				threat_group_intel.data.batch_save(*small_batch)
 
 			self.save_checkpoint_data(input_config.checkpoint_dir, stanza,  { 'last_ran': run_time })
