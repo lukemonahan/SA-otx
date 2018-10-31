@@ -30,6 +30,7 @@ Currently evaluated indicator types from OTX are:
 * URL
 * IPv4
 * IPv6
+* CIDR
 
 These map to threat intel groups and fields in Splunk ES according to the mapping that can be found in `bin/otx_intel_manager.py` (search for the `type_mappings` function)
 

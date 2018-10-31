@@ -211,6 +211,12 @@ class OTXIntelManagerModularInput(Script):
 				{ "intel_collection": "http_intel", "intel_field": "ip" },
 				{ "intel_collection": "email_intel", "intel_field": "embedded_ip" },
 				{ "intel_collection": "certificate_intel", "intel_field": "ip" }
+			],
+			"CIDR": [
+				{ "intel_collection": "ip_intel", "intel_field": "ip" },
+				{ "intel_collection": "http_intel", "intel_field": "ip" },
+				{ "intel_collection": "email_intel", "intel_field": "embedded_ip" },
+				{ "intel_collection": "certificate_intel", "intel_field": "ip" }
 			]
 		}
 
