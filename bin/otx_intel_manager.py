@@ -63,7 +63,11 @@ class OTXIntelManagerModularInput(Script):
 		 	if last_ran is not None:
 		 		et = str(last_ran)
 		 	else:
-		 		et = "-%dd" % backfill_days
+				et = run_time - (backfill_days*24*3600)
+
+			# We look back and extra week for indicators/pulses, but their _indextime must be < et
+			# This is to work around race condition issues with data arriving from the API
+			et_safe = et - (7*24*3600)
 
 			# Get a service handle back to splunkd
 			splunkd_uri = self._input_definition.metadata["server_uri"]
@@ -77,7 +81,7 @@ class OTXIntelManagerModularInput(Script):
 				owner="nobody"
 			)
 
-			indicator_query = "search index=%s earliest=%s latest=%d sourcetype=otx:indicator | fields _time type indicator pulse_id" % (otx_index, et, run_time)
+			indicator_query = "search index=%s earliest=%d _indextime>%d latest=%d sourcetype=otx:indicator | fields _time type indicator pulse_id" % (otx_index, et_safe, et, run_time)
 
 			ew.log(ew.INFO, "Fetching indicators...")
 
@@ -113,7 +117,7 @@ class OTXIntelManagerModularInput(Script):
 					if resp['status'] >= 400:
 						ew.log(ew.ERROR, "Error when writing a batch of indicators: %s" % str(resp))
 
-			pulse_query = 'search index=%s earliest=%s latest=%d sourcetype=otx:pulse | dedup id | eval threat_category=mvjoin(mvdedup(mvappend($industries{}$, $tags{}$, $targeted_countries{}$)), "|") | fillnull value="" adversary description threat_category | fields _time adversary id name description threat_category' % (otx_index, et, run_time)
+			pulse_query = 'search index=%s earliest=%d _indextime>%d latest=%d sourcetype=otx:pulse | dedup id | eval threat_category=mvjoin(mvdedup(mvappend($industries{}$, $tags{}$, $targeted_countries{}$)), "|") | fillnull value="" adversary description threat_category | fields _time adversary id name description threat_category' % (otx_index, et_safe, et, run_time)
 
 			ew.log(ew.INFO, "Fetching pulses")
 
