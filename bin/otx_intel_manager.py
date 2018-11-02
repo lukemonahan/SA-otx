@@ -61,7 +61,7 @@ class OTXIntelManagerModularInput(Script):
 				last_ran = None
 
 		 	if last_ran is not None:
-		 		et = str(last_ran)
+		 		et = last_ran
 		 	else:
 				et = run_time - (backfill_days*24*3600)
 
