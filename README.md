@@ -8,8 +8,10 @@ It does this within a modular input otx_intel_manager which periodically reads t
 Requirements
 ============
 
-* TA-otx -- This needs to be collecting OTX data, but is not a search time requirement for this add-on
+* TA-otx -- This needs to be collecting OTX data, but there is not a requirement for this add-on on the Splunk ES search head
 * Splunk for Enterprise Security
+
+Important: This add-on probably will not work well if your ES is deployed to a search head cluster, as the modular input will run at the same time on multiple search heads and cause race conditions. A future update will address search head clustering.
 
 Setup
 =====
