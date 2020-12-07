@@ -3,7 +3,7 @@ Supporting add-on for Open Threat Exchange
 
 This app integrates OTX indicators collected by TA-otx into the Splunk Enterprise Security threat intelligence framework.
 
-It does this within a modular input otx_intel_manager which periodically reads the data that has been collected by TA-otx and pushes it into the threat collections in a correctly structured manner.
+It does this with a series of saved searches running (by default) every 12 hours. Previous versions of this app used a modular input to do this: this input is no longer required and should be disabled if you still have it in your system.
 
 Requirements
 ============
@@ -11,15 +11,13 @@ Requirements
 * TA-otx -- This needs to be collecting OTX data, but there is not a requirement for this add-on on the Splunk ES search head
 * Splunk for Enterprise Security
 
-Important: This add-on probably will not work well if your ES is deployed to a search head cluster, as the modular input will run at the same time on multiple search heads and cause race conditions. A future update will address search head clustering.
-
 Setup
 =====
 To set up this app after install:
 1. Ensure that you have OTX data collected by TA-otx and it is fully backfilled to where you want it
-1. Enable the otx_intel_manager://default modular input
-
-The first backfill may take some time and can use CPU on your ES search head, depending upon how many OTX indicators you have indexed and are backfilling.
+1. Customise the macro `otx_index` to point to where your OTX data is 
+1. (Optional) Customise the `otx_lookback` macro if you wish more/less than 90 days of indicators included
+1. (Optional) Customise the schedule of all saved searches if you wish more frequent updates
 
 Field mapping
 =============
@@ -34,7 +32,7 @@ Currently evaluated indicator types from OTX are:
 * IPv6
 * CIDR
 
-These map to threat intel groups and fields in Splunk ES according to the mapping that can be found in `bin/otx_intel_manager.py` (search for the `type_mappings` function)
+These map to the equivalent threat intel groups and fields in Splunk ES.
 
 Other field mappings that are important:
 
